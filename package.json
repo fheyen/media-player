@@ -1,0 +1,24 @@
+{
+  "name": "media-player",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "vite",
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "predeploy": "vite build",
+    "deploy": "npx gh-pages -d dist",
+    "upd": "ncu -u"
+  },
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "^3.1.2",
+    "svelte": "^4.2.19",
+    "vite": "^5.4.9"
+  },
+  "dependencies": {
+    "gh-pages": "^6.2.0",
+    "npm-check-updates": "^17.1.3"
+  }
+}
