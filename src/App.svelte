@@ -186,6 +186,39 @@
     updateStatusText();
   }
 
+  /**
+   * Scroll outside video for time
+   * @param e
+   */
+  function mainWheel(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    const video = document.getElementsByTagName('video')[0];
+    video.currentTime += e.deltaY < 0 ? -5 : 5;
+    if (video.currentTime > video.duration - 1) {
+      showNextFile();
+    } else if (video.currentTime < 1) {
+      showPrevFile();
+    }
+  }
+
+  /**
+   * Scroll on video for loudness
+   * @param e
+   */
+  function videoWheel(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    const video = document.getElementsByTagName('video')[0];
+    if (e.deltaY < 0) {
+      // Volume down
+      video.volume = Math.max(video.volume - 0.05, 0);
+    } else {
+      // Volume up
+      video.volume = Math.min(video.volume + 0.01, 1);
+    }
+  }
+
   onMount(() => {
     document.body.addEventListener('keydown', handleKeyPress);
   });
@@ -424,19 +457,20 @@
   }
 </script>
 
-<main>
+<main on:mousewheel="{mainWheel}">
   <div id="progress">
     <div id="progressBar"></div>
   </div>
   <div id="status"></div>
 
-  <div>
+  <div class="mediaContainer">
     <video
       autoplay="{true}"
       controls="{true}"
       loop="{true}"
       muted="{true}"
       volume="{0.5}"
+      on:mousewheel="{videoWheel}"
     ></video>
     <img />
   </div>
