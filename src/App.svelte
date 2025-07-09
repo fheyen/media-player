@@ -10,6 +10,7 @@
   } from './lib/lib.js';
   import AddTagButton from './lib/add-tag-button.svelte';
   import Info from './lib/info.svelte';
+  import { version } from '../package.json';
 
   /**
    * TODO:
@@ -522,6 +523,7 @@
   {/if}
 
   <Info />
+  <footer>v{version}</footer>
 </main>
 
 <style>
