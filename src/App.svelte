@@ -195,10 +195,10 @@
     e.preventDefault();
     e.stopPropagation();
     const video = document.getElementsByTagName('video')[0];
-    video.currentTime += e.deltaY < 0 ? -5 : 5;
-    if (video.currentTime > video.duration - 1) {
+    video.currentTime += e.deltaY < 0 ? -1 : 1;
+    if (video.currentTime > video.duration - 2) {
       showNextFile();
-    } else if (video.currentTime < 1) {
+    } else if (video.currentTime < 2) {
       showPrevFile();
     }
   }
