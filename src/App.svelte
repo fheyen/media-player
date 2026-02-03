@@ -1,5 +1,5 @@
 <script>
-  import { onDestroy, onMount } from 'svelte';
+  import { onDestroy, onMount } from "svelte";
   import {
     getFileExtension,
     getTags,
@@ -7,10 +7,9 @@
     imageFileExtensions,
     shuffle,
     videoFileExtensions,
-  } from './lib/lib.js';
-  import AddTagButton from './lib/add-tag-button.svelte';
-  import Info from './lib/info.svelte';
-  import { version } from '../package.json';
+  } from "./lib/lib.js";
+  import AddTagButton from "./lib/add-tag-button.svelte";
+  import { version } from "../package.json";
 
   /**
    * TODO:
@@ -20,7 +19,7 @@
 
   // Config
   const AUTOPLAY_WAIT_TIME = 3000;
-  const SHOW_TAGS = getUrlParam(window, 'tags') !== null;
+  const SHOW_TAGS = getUrlParam(window, "tags") !== null;
 
   // Globals
   let FILES = [];
@@ -35,7 +34,7 @@
 
   // Warning if File System API is unsupported
   if (!window.showDirectoryPicker) {
-    alert('Local file access does not work in this browser!');
+    alert("Local file access does not work in this browser!");
   }
 
   /**
@@ -48,7 +47,7 @@
     TAGS = new Map();
     DIR_HANDLE = await window.showDirectoryPicker();
     for await (const entry of DIR_HANDLE.values()) {
-      if (entry.kind === 'file') {
+      if (entry.kind === "file") {
         // Check if valid extension
         const extension = getFileExtension(entry.name);
         if (
@@ -69,6 +68,7 @@
     // Save all files for resetting filter
     FILES_ALL = [...FILES];
     // Show first file
+    CURRENT_FILE = 0;
     showFile(FILES[CURRENT_FILE]);
   }
 
@@ -79,112 +79,114 @@
    */
   async function handleKeyPress(event) {
     // Still allow to use filter input
-    const filterInput = document.getElementById('filterInput');
+    const filterInput = document.getElementById("filterInput");
     if (event.target === filterInput) {
       return;
     }
     // Still allow to reload page and use dev tools
-    const passThrough = new Set(['F2', 'F5', 'F11', 'F12']);
+    const passThrough = new Set(["F2", "F5", "F11", "F12"]);
     if (!passThrough.has(event.key)) {
       event.preventDefault();
     }
-    const video = document.getElementsByTagName('video')[0];
+    const video = document.getElementsByTagName("video")[0];
     const fileHandle = FILES[CURRENT_FILE];
     switch (event.key) {
-      case 'c':
+      case "c":
         // Choose directory
         chooseDirectory();
         break;
-      case 'ArrowLeft':
+      case "ArrowLeft":
         // Previous file
         showPrevFile();
         break;
-      case 'ArrowRight':
+      case "ArrowRight":
         // Next file
         showNextFile();
         break;
-      case 'ArrowUp':
+      case "ArrowUp":
         // Backward video
         video.currentTime -= 5;
         break;
-      case 'ArrowDown':
+      case "ArrowDown":
         // Forward video
         video.currentTime += 5;
         break;
-      case 'm':
+      case "m":
         // Mute / unmute video
         video.muted = !video.muted;
         break;
-      case '-':
+      case "-":
         // Volume down
         video.volume = Math.max(video.volume - 0.05, 0);
         break;
-      case '+':
+      case "+":
         // Volume up
         video.volume = Math.min(video.volume + 0.01, 1);
         break;
-      case 's':
+      case "s":
         // Play slower
         video.playbackRate = Math.max(video.playbackRate / 2, 0.125);
         SPEED = video.playbackRate;
         break;
-      case 'f':
+      case "f":
         // Play faster
         video.playbackRate = Math.min(video.playbackRate * 2, 16);
         SPEED = video.playbackRate;
         break;
-      case 'a':
+      case "a":
         // Toggle auto-play
-        AUTO_PLAY = !AUTO_PLAY;
-        // Video cannot loop with autoplay
-        video.loop = !AUTO_PLAY;
+        toggleAutoPlay(video);
         break;
-      case 'Delete':
-        // Delete file from disk
-        if (
-          DIR_HANDLE &&
-          confirm(`Delete ${fileHandle.name}? Cannot be undone!`)
-        ) {
-          deleteFile(fileHandle);
-        }
-        FILES = [
-          ...FILES.slice(0, CURRENT_FILE),
-          ...FILES.slice(CURRENT_FILE + 1),
-        ];
-        showFile(FILES[CURRENT_FILE]);
+      case "Delete":
+        deleteFile();
         break;
-      case '1':
+      case "1":
         // Shuffle
-        sortFiles('shuffle');
+        sortFiles("shuffle");
         break;
-      case '2':
+      case "2":
         // Sort by name
-        sortFiles('name');
+        sortFiles("name");
         break;
-      case '3':
+      case "3":
         // Sort by date
-        sortFiles('date');
+        sortFiles("date");
         break;
-      case '4':
+      case "4":
         // Sort by size
-        sortFiles('size');
+        sortFiles("size");
         break;
-      case 'F2':
+      case "F2":
         // Rename
         // Read current file
         let nameWithoutTags = fileHandle.name;
-        if (fileHandle.name.indexOf('[') > 0) {
+        if (fileHandle.name.indexOf("[") > 0) {
           nameWithoutTags = fileHandle.name.substring(
             0,
-            fileHandle.name.indexOf('['),
+            fileHandle.name.indexOf("["),
           );
         }
         const extension = getFileExtension(fileHandle.name);
-        const newName = `${nameWithoutTags} [${[...TAGS_CURRENT].join('][')}].${extension}`;
+        const newName = `${nameWithoutTags} [${[...TAGS_CURRENT].join("][")}].${extension}`;
         await renameCurrent(fileHandle, newName);
         break;
     }
     updateStatusText();
+  }
+
+  function deleteFile() {
+    // Delete file from disk
+    if (DIR_HANDLE && confirm(`Delete ${fileHandle.name}? Cannot be undone!`)) {
+      deleteFile(fileHandle);
+    }
+    FILES = [...FILES.slice(0, CURRENT_FILE), ...FILES.slice(CURRENT_FILE + 1)];
+    showFile(FILES[CURRENT_FILE]);
+  }
+
+  function toggleAutoPlay(video) {
+    AUTO_PLAY = !AUTO_PLAY;
+    // Video cannot loop with autoplay
+    video.loop = !AUTO_PLAY;
   }
 
   /**
@@ -194,7 +196,7 @@
   function mainWheel(e) {
     e.preventDefault();
     e.stopPropagation();
-    const video = document.getElementsByTagName('video')[0];
+    const video = document.getElementsByTagName("video")[0];
     video.currentTime += e.deltaY < 0 ? -1 : 1;
     if (video.currentTime > video.duration - 2) {
       showNextFile();
@@ -210,7 +212,7 @@
   function videoWheel(e) {
     e.preventDefault();
     e.stopPropagation();
-    const video = document.getElementsByTagName('video')[0];
+    const video = document.getElementsByTagName("video")[0];
     if (e.deltaY < 0) {
       // Volume down
       video.volume = Math.max(video.volume - 0.05, 0);
@@ -221,11 +223,11 @@
   }
 
   onMount(() => {
-    document.body.addEventListener('keydown', handleKeyPress);
+    document.body.addEventListener("keydown", handleKeyPress);
   });
 
   onDestroy(() => {
-    document.body.removeEventListener('keydown', handleKeyPress);
+    document.body.removeEventListener("keydown", handleKeyPress);
   });
 
   /**
@@ -273,19 +275,19 @@
       return;
     }
     const currentName = FILES[CURRENT_FILE].name;
-    const video = document.getElementsByTagName('video')[0];
+    const video = document.getElementsByTagName("video")[0];
     const text =
       `${CURRENT_FILE + 1} / ` +
       `${FILES.length} files - ` +
       `${currentName} - ` +
-      `Vol: ${video.muted ? 'muted' : Math.round(video.volume * 100)} - ` +
+      `Vol: ${video.muted ? "muted" : Math.round(video.volume * 100)} - ` +
       `Rate: ${SPEED} - ` +
       `${Math.round(video.currentTime)} / ${Math.round(video.duration)} sec`;
-    document.getElementById('status').innerText = text;
+    document.getElementById("status").innerText = text;
     // Progress bar
-    document.getElementById('progressBar').style.width = video?.duration
-      ? (video.currentTime / video.duration) * 100 + '%'
-      : '0';
+    document.getElementById("progressBar").style.width = video?.duration
+      ? (video.currentTime / video.duration) * 100 + "%"
+      : "0";
   }
 
   /**
@@ -301,9 +303,9 @@
     // TODO: allow user to choose mode
     const mustHaveAll = true;
     // Get tags from filter input
-    const inputText = document.getElementById('filterInput').value;
+    const inputText = document.getElementById("filterInput").value;
     const rawTags = inputText
-      .split(' ')
+      .split(" ")
       .map((d) => d.trim())
       .filter((d) => d.length > 0);
     const tags = new Set(rawTags);
@@ -338,11 +340,11 @@
    * @param {'name'|'date'|'size'|'shuffle'} mode sorting mode
    */
   async function sortFiles(mode) {
-    if (mode === 'name') {
+    if (mode === "name") {
       FILES.sort((a, b) => (a.name < b.name ? -1 : 1));
-    } else if (mode === 'date' || mode === 'size') {
+    } else if (mode === "date" || mode === "size") {
       const comparableArray =
-        mode === 'date'
+        mode === "date"
           ? await Promise.all(
               FILES.map(async (d) => [await d.getFile().lastModified, d]),
             )
@@ -351,10 +353,10 @@
             );
       comparableArray.sort((a, b) => (a[0] < b[0] ? -1 : 1));
       FILES = comparableArray.map((x) => x[1]);
-    } else if (mode === 'shuffle') {
+    } else if (mode === "shuffle") {
       shuffle(FILES);
     } else {
-      console.error('Invalid sorting mode');
+      console.error("Invalid sorting mode");
     }
   }
 
@@ -384,7 +386,7 @@
     window.clearTimeout(IMAGE_AUTOPLAY_TIMEOUT);
     const extension = getFileExtension(fileHandle.name);
     if (!extension) {
-      throw new Error('No file extension');
+      throw new Error("No file extension");
     }
     if (videoFileExtensions.has(extension)) {
       showVideo(fileHandle);
@@ -393,7 +395,7 @@
       showImage(fileHandle);
       TAGS_CURRENT = new Set(getTags(fileHandle.name));
     } else {
-      alert('Not a image or video file');
+      alert("Not a image or video file");
     }
   }
 
@@ -404,10 +406,10 @@
    */
   async function showVideo(fileHandle) {
     // Hide image, show video
-    const img = document.getElementsByTagName('img')[0];
-    img.style.display = 'none';
-    const video = document.getElementsByTagName('video')[0];
-    video.style.display = 'block';
+    const img = document.getElementsByTagName("img")[0];
+    img.style.display = "none";
+    const video = document.getElementsByTagName("video")[0];
+    video.style.display = "block";
     // Load and play video
     const file = await fileHandle.getFile();
     const url = URL.createObjectURL(file);
@@ -438,10 +440,10 @@
    */
   async function showImage(fileHandle) {
     // Hide video, show image
-    const video = document.getElementsByTagName('video')[0];
-    video.style.display = 'none';
-    const img = document.getElementsByTagName('img')[0];
-    img.style.display = 'block';
+    const video = document.getElementsByTagName("video")[0];
+    video.style.display = "none";
+    const img = document.getElementsByTagName("img")[0];
+    img.style.display = "block";
     // Display image
     const file = await fileHandle.getFile();
     const url = URL.createObjectURL(file);
@@ -458,7 +460,7 @@
   }
 </script>
 
-<main on:mousewheel="{mainWheel}">
+<main on:mousewheel={mainWheel}>
   <div id="progress">
     <div id="progressBar"></div>
   </div>
@@ -466,19 +468,19 @@
 
   <div class="mediaContainer">
     <video
-      autoplay="{true}"
-      controls="{true}"
-      loop="{true}"
-      muted="{true}"
-      volume="{0.5}"
-      on:mousewheel="{videoWheel}"
+      autoplay={true}
+      controls={true}
+      loop={true}
+      muted={true}
+      volume={0.5}
+      on:mousewheel={videoWheel}
     ></video>
     <img />
   </div>
 
   {#if SHOW_TAGS}
     <div class="filterContainer">
-      <form on:submit="{updateFilter}">
+      <form on:submit={updateFilter}>
         <input
           id="filterInput"
           type="text"
@@ -491,30 +493,30 @@
     <div class="tags">
       {#each [...TAGS_CURRENT] as tag}
         <button
-          class="{TAGS.get(tag) < 3 ? 'rare' : ''}"
+          class={TAGS.get(tag) < 3 ? "rare" : ""}
           title="occurs {TAGS.get(tag)} times"
-          on:click="{() => {
-            if (confirm('Remove tag?')) {
+          on:click={() => {
+            if (confirm("Remove tag?")) {
               TAGS_CURRENT.delete(tag);
               TAGS_CURRENT = new Set(TAGS_CURRENT);
             }
-          }}"
+          }}
         >
           {tag}
         </button>
       {/each}
     </div>
-    <AddTagButton bind:tags="{TAGS_CURRENT}" allTags="{TAGS}" />
+    <AddTagButton bind:tags={TAGS_CURRENT} allTags={TAGS} />
 
     <div class="alltags">
       {#each TAGS.keys() as tag}
         <button
-          class="{TAGS.get(tag) < 3 ? 'rare' : ''}"
+          class={TAGS.get(tag) < 3 ? "rare" : ""}
           title="{`${tag} ${TAGS.get(tag)} ${((TAGS.get(tag) / FILES_ALL.length) * 100).toFixed(1)}%`}. Click to add tag to current file."
-          on:click="{() => {
+          on:click={() => {
             TAGS_CURRENT.add(tag);
             TAGS_CURRENT = new Set(TAGS_CURRENT);
-          }}"
+          }}
         >
           {tag}
         </button>
@@ -522,7 +524,48 @@
     </div>
   {/if}
 
-  <Info />
+  <div class="info">
+    <div>
+      <div on:click={chooseDirectory}>
+        <span>c</span> choose directory
+      </div>
+      <div>
+        <span>🢀</span> / <span>🢂</span> previous / next item
+      </div>
+      <div>
+        <span>🢁</span> / <span>🢃</span> 5 seconds backward / forward
+      </div>
+      <div>
+        <span>+</span> / <span>-</span> / <span>m</span> volume up / down / muted
+      </div>
+      <div>
+        <span>s</span> / <span>f</span> play video slower / faster
+      </div>
+      <div on:click={toggleAutoPlay}>
+        <span>a</span> toggle autoplay
+      </div>
+      <div on:click={deleteFile}>
+        <span>Delete</span> delete file
+      </div>
+      <div>
+        <span>F2</span> rename file
+      </div>
+      <div>
+        <span>F5</span> refresh
+      </div>
+      <div>
+        <span>F11</span> fullscreen
+      </div>
+      <div>
+        sort:
+        <span on:click={() => sortFiles("shuffle")}>1</span> shuffle
+        <span on:click={() => sortFiles("name")}>2</span> name
+        <span on:click={() => sortFiles("date")}>3</span> date
+        <span on:click={() => sortFiles("size")}>4</span> size
+      </div>
+    </div>
+  </div>
+
   <footer>v{version}</footer>
 </main>
 
