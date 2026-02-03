@@ -138,7 +138,7 @@
         toggleAutoPlay(video);
         break;
       case "Delete":
-        deleteFile();
+        deleteFilePromt();
         break;
       case "1":
         // Shuffle
@@ -172,21 +172,6 @@
         break;
     }
     updateStatusText();
-  }
-
-  function deleteFile() {
-    // Delete file from disk
-    if (DIR_HANDLE && confirm(`Delete ${fileHandle.name}? Cannot be undone!`)) {
-      deleteFile(fileHandle);
-    }
-    FILES = [...FILES.slice(0, CURRENT_FILE), ...FILES.slice(CURRENT_FILE + 1)];
-    showFile(FILES[CURRENT_FILE]);
-  }
-
-  function toggleAutoPlay(video) {
-    AUTO_PLAY = !AUTO_PLAY;
-    // Video cannot loop with autoplay
-    video.loop = !AUTO_PLAY;
   }
 
   /**
@@ -256,6 +241,21 @@
     }
   }
 
+  function deleteFilePromt() {
+    const fileHandle = FILES[CURRENT_FILE];
+    // Delete file from disk
+    if (DIR_HANDLE && confirm(`Delete ${fileHandle.name}? Cannot be undone!`)) {
+      deleteFile(fileHandle);
+      showFile(FILES[CURRENT_FILE]);
+    }
+  }
+
+  function toggleAutoPlay(video) {
+    AUTO_PLAY = !AUTO_PLAY;
+    // Video cannot loop with autoplay
+    video.loop = !AUTO_PLAY;
+  }
+
   /**
    * Deletes a file from disk and removes it from FILES_ALL and FILES
    *
@@ -263,7 +263,7 @@
    */
   async function deleteFile(fileHandle) {
     FILES_ALL = FILES_ALL.filter((d) => d.name !== fileHandle.name);
-    FILES.splice(CURRENT_FILE, 1);
+    FILES = FILES.filter((d) => d.name !== fileHandle.name);
     DIR_HANDLE.removeEntry(fileHandle.name);
   }
 
@@ -544,7 +544,7 @@
       <div on:click={toggleAutoPlay}>
         <span>a</span> toggle autoplay
       </div>
-      <div on:click={deleteFile}>
+      <div on:click={deleteFilePromt}>
         <span>Delete</span> delete file
       </div>
       <div>
