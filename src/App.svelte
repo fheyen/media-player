@@ -70,6 +70,8 @@
     // Show first file
     CURRENT_FILE = 0;
     showFile(FILES[CURRENT_FILE]);
+    // sort tags
+    TAGS = new Map([...TAGS.entries()].sort((a, b) => b[1] - a[1]));
   }
 
   /**
